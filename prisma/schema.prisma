@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model UserProfile {
+  id                   String         @id @default(uuid())
+  email                String         @unique
+  name                 String
+  age                  Int
+  gender               String
+  height_cm            Float
+  weight_kg            Float
+  activity_level       String
+  goal                 String
+  deficit              Int            @default(0)
+  tdee                 Int
+  daily_calorie_target Int
+  protein_g            Int            @default(0)
+  carbs_g              Int            @default(0)
+  fat_g                Int            @default(0)
+  created_at           DateTime       @default(now())
+  logs                 DailyFoodLog[]
+}
+
+model DailyFoodLog {
+  id             String      @id @default(uuid())
+  user_id        String
+  user           UserProfile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  date           DateTime    @db.Date
+  total_calories Int         @default(0)
+  total_protein  Int         @default(0)
+  total_carbs    Int         @default(0)
+  total_fat      Int         @default(0)
+  meals          Meal[]
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @updatedAt
+
+  @@unique([user_id, date])
+}
+
+model Meal {
+  id         String       @id @default(uuid())
+  log_id     String
+  log        DailyFoodLog @relation(fields: [log_id], references: [id], onDelete: Cascade)
+  type       String       // e.g., Breakfast, Lunch, Dinner, Snack
+  food_items FoodItem[]
+}
+
+model FoodItem {
+  id           String @id @default(uuid())
+  meal_id      String
+  meal         Meal   @relation(fields: [meal_id], references: [id], onDelete: Cascade)
+  api_food_id  String
+  name         String
+  serving_size Float
+  serving_unit String
+  calories     Int
+  protein      Int
+  carbs        Int
+  fat          Int
+}
